@@ -14,13 +14,13 @@ if(!isset($_GET['url'])) $_GET['url'] = 'home';
 
 // $url now equals the route
 $url = $_GET['url'];
+$url_arr = explode('/', $url);
 
 // Connecting to database
 $pdo = new PDO('mysql:host=localhost;dbname=api;charset=utf8', 'root', 'root');
 
 // Handling GET requests
 if($_SERVER['REQUEST_METHOD'] == 'GET'){
-    $url_arr = explode('/', $url);
 
     // Getting all the users
     if($url == 'users'){
@@ -56,6 +56,15 @@ if($_SERVER['REQUEST_METHOD'] == 'GET'){
 
     else if($url_arr[0] == 'users' && is_numeric($url_arr[1]) && $url_arr[2] == 'edit' && !isset($url_arr[3])){
         $id = trim($url_arr[1]);
+
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        $result = $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        if(!$result) exit('{"message": "error"}');
+
+        $name = $data['name'];
+        $phone = $data['phone'];
+
         require('templates/edit.php');
     }
 }
@@ -73,6 +82,24 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
         if(!$result) echo '{"message": "error"}';
         else echo '{"message": "user is added"}';
+    }
+
+    else if($url_arr[0] == "users" && is_numeric($url_arr[1]) && !isset($url_arr[2])){
+        $type = $_POST['type'];
+        $id = trim($_POST['id']);
+
+        if($type == 'update'){
+            $name = trim($_POST['name']);
+            $phone = trim($_POST['phone']);
+
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, phone = ? WHERE id = ?");
+            $result = $stmt->execute([$name, $phone, $id]);
+
+            if(!$result) echo '{"message": "error"}';
+            else echo '{"message": "user is updated"}';
+
+        }
+
     }
 
 
