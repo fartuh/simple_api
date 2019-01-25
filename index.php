@@ -67,6 +67,15 @@ if($_SERVER['REQUEST_METHOD'] == 'GET'){
 
         require('templates/edit.php');
     }
+
+    else if($url_arr[0] == 'users' && is_numeric($url_arr[1]) && $url_arr[2] == 'delete' && !isset($url_arr[3])){
+        $id = trim($url_arr[1]);
+
+        $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+        $result = $stmt->execute([$id]);
+        if(!$result) exit('{"message": "error"}');
+
+    }
 }
 
 // Handling POST requests
